@@ -14,8 +14,8 @@ public:
 	explicit LinePlot(QWidget *parent = nullptr);
 	~LinePlot();
 
-	void LinePlot::setXAxisLabel(const QString &label);
-	void LinePlot::setYAxisLabel(const QString &label);
+	void setXAxisLabel(const QString &label);
+	void setYAxisLabel(const QString &label);
 
 	void setFirstCurveName(const QString &name);
 	void setSecondCurveName(const QString &name);
