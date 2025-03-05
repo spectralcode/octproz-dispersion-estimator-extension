@@ -26,8 +26,8 @@ public:
 	Ui::DispersionEstimatorForm* ui;
 
 protected:
-	bool eventFilter(QObject *watched, QEvent *event) override;
-
+	bool eventFilter(QObject* watched, QEvent *event) override;
+	void showEvent(QShowEvent* event) override;
 
 public slots:
 	void setMaximumFrameNr(int maximum);

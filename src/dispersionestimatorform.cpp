@@ -56,7 +56,6 @@ void DispersionEstimatorForm::setSettings(QVariantMap settings) {
 		this->ui->doubleSpinBox_d3Start->setValue(parameters.d3start);
 		this->ui->doubleSpinBox_d3End->setValue(parameters.d3end);
 		this->ui->spinBox_numberOfDispersionSamples->setValue(parameters.numberOfDispersionSamples);
-		//this->restoreGeometry(this->parameters.windowState);
 
 		// Set GUI elements visibility based on the stored toggle status
 		ui->widget_settings_area->setVisible(this->parameters.guiVisible);
@@ -71,7 +70,6 @@ void DispersionEstimatorForm::setSettings(QVariantMap settings) {
 		// Restore the saved geometry after layout adjustments
 		this->restoreGeometry(this->parameters.windowState);
 	}
-
 }
 
 void DispersionEstimatorForm::getSettings(QVariantMap* settings) {
@@ -92,17 +90,35 @@ void DispersionEstimatorForm::getSettings(QVariantMap* settings) {
 	settings->insert(DISPERSION_ESTIMATOR_D3_END, this->parameters.d3end);
 	settings->insert(DISPERSION_ESTIMATOR_NUMBER_OF_DISPERSION_SAMPLES, this->parameters.numberOfDispersionSamples);
 	settings->insert(DISPERSION_ESTIMATOR_WINDOW_STATE, this->parameters.windowState);
-	settings->insert(DISPERSION_ESTIMATOR_GUI_TOGGLE, this->ui->widget_settings_area->isVisible());
+	settings->insert(DISPERSION_ESTIMATOR_GUI_TOGGLE, this->parameters.guiVisible);
 }
 
 bool DispersionEstimatorForm::eventFilter(QObject *watched, QEvent *event) {
 	if (watched == this) {
 		if (event->type() == QEvent::Resize || event->type() == QEvent::Move) {
-			this->parameters.windowState = this->saveGeometry();
-			emit paramsChanged(this->parameters);
+			if(this->isVisible()) {
+				this->parameters.windowState = this->saveGeometry(); //todo: on windows this stores the window position one title bar height below its current position. check how it behaves on a jetson nano and maybe save window->pos and size instead of geometry
+				emit paramsChanged(this->parameters);
+			}
 		}
 	}
 	return QWidget::eventFilter(watched, event);
+}
+
+void DispersionEstimatorForm::showEvent(QShowEvent *event) {
+	QWidget::showEvent(event);
+
+#ifdef Q_OS_WIN
+	//on startup the qwidget window is positioned one title bar height below its previous position (probably because storeGeometry seems to save the window geometry without the title bar)
+	//this moves the window back to its original position
+	//todo: test if this is also necessary for linux jetson nano
+	static bool firstShow = true;
+	if (firstShow) {
+		int titleBarHeight = geometry().y()-frameGeometry().y(); //info: this calculation here is used because QStyle::PM_DockWidgetTitleMargin gives a slightly too small value on windows 10
+		move(this->frameGeometry().topLeft() - QPoint(0, titleBarHeight));
+		firstShow = false;
+	}
+#endif
 }
 
 void DispersionEstimatorForm::setMaximumFrameNr(int maximum) {
@@ -148,13 +164,12 @@ void DispersionEstimatorForm::updateStatus(const QString &status) {
 
 void DispersionEstimatorForm::toggleUIVisibility() {
 	// Toggle visibility state
-	static bool isVisible = true;
-	isVisible = !isVisible;
+	this->parameters.guiVisible = !this->parameters.guiVisible;
 
 	// Hide or show the settings area and status label.
-	ui->widget_settings_area->setVisible(isVisible);
+	ui->widget_settings_area->setVisible(this->parameters.guiVisible);
 
-	if (!isVisible) {
+	if (!this->parameters.guiVisible) {
 		// Recalculate the layout size and force the widget to shrink to its minimum size.
 		this->adjustSize();
 		// Fix the window size to the new minimum size.
@@ -165,6 +180,7 @@ void DispersionEstimatorForm::toggleUIVisibility() {
 		this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
 		this->adjustSize();
 	}
+	emit paramsChanged(this->parameters);
 }
 
 void DispersionEstimatorForm::connectUiControls() {
@@ -179,7 +195,7 @@ void DispersionEstimatorForm::connectUiControls() {
 
 	connect(ui->checkBox_useLinear, &QCheckBox::toggled,
 		this, [this](bool checked) {
-			parameters.useLinearAscans = checked;
+			this->parameters.useLinearAscans = checked;
 			emit paramsChanged(parameters);
 		});
 
@@ -196,60 +212,60 @@ void DispersionEstimatorForm::connectUiControls() {
 	// Number of center A-scans
 	connect(ui->spinBox_numberOfAscans, QOverload<int>::of(&QSpinBox::valueChanged),
 		this, [this](int value) {
-			parameters.numberOfCenterAscans = value;
-			emit paramsChanged(parameters);
+			this->parameters.numberOfCenterAscans = value;
+			emit paramsChanged(this->parameters);
 		});
 
 	// Samples to ignore
 	connect(ui->spinBox_samplesToIgnore, QOverload<int>::of(&QSpinBox::valueChanged),
 		this, [this](int value) {
-			parameters.numberOfAscanSamplesToIgnore = value;
-			emit paramsChanged(parameters);
+			this->parameters.numberOfAscanSamplesToIgnore = value;
+			emit paramsChanged(this->parameters);
 		});
 
 	// Image metric (sharpness metric)
 	connect(ui->comboBox_imageMetric, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, [this](int index) {
-			parameters.sharpnessMetric = static_cast<ASCAN_SHARPNESS_METRIC>(index);
-			emit paramsChanged(parameters);
+			this->parameters.sharpnessMetric = static_cast<ASCAN_SHARPNESS_METRIC>(index);
+			emit paramsChanged(this->parameters);
 		});
 
 	// Metric threshold
 	connect(ui->doubleSpinBox_metricThreshold, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 		this, [this](double value) {
-			parameters.metricThreshold = value;
-			emit paramsChanged(parameters);
+			this->parameters.metricThreshold = value;
+			emit paramsChanged(this->parameters);
 		});
 
 	// d2 start and end values
 	connect(ui->doubleSpinBox_d2Start, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 		this, [this](double value) {
-			parameters.d2start = value;
-			emit paramsChanged(parameters);
+			this->parameters.d2start = value;
+			emit paramsChanged(this->parameters);
 		});
 	connect(ui->doubleSpinBox_d2End, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 		this, [this](double value) {
-			parameters.d2end = value;
-			emit paramsChanged(parameters);
+			this->parameters.d2end = value;
+			emit paramsChanged(this->parameters);
 		});
 
 	// d3 start and end values
 	connect(ui->doubleSpinBox_d3Start, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 		this, [this](double value) {
-			parameters.d3start = value;
-			emit paramsChanged(parameters);
+			this->parameters.d3start = value;
+			emit paramsChanged(this->parameters);
 		});
 	connect(ui->doubleSpinBox_d3End, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 		this, [this](double value) {
-			parameters.d3end = value;
-			emit paramsChanged(parameters);
+			this->parameters.d3end = value;
+			emit paramsChanged(this->parameters);
 		});
 
 	// Number of dispersion samples
 	connect(ui->spinBox_numberOfDispersionSamples, QOverload<int>::of(&QSpinBox::valueChanged),
 		this, [this](int value) {
-			parameters.numberOfDispersionSamples = value;
-			emit paramsChanged(parameters);
+			this->parameters.numberOfDispersionSamples = value;
+			emit paramsChanged(this->parameters);
 		});
 
 	// Buttons
