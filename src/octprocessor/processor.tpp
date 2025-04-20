@@ -98,7 +98,7 @@ void Processor<T>::setCustomResamplingCurve(const std::string& filePath) {
 			try {
 				T value = std::stod(sampleValue);
 				customResamplingCurve_.push_back(value);
-			} catch (const std::exception& e) {
+			} catch (const std::exception&) {
 				throw std::runtime_error("Error parsing sample value: " + sampleValue);
 			}
 		}
@@ -150,9 +150,9 @@ void Processor<T>::computeDispersivePhase() {
 
 	// Compute phase values using the polynomial coefficients
 	for (size_t i = 0; i < spectrumSize; ++i) {
-		T k = static_cast<T>(i);
+		//T k = static_cast<T>(i);
 		//T phaseValue = static_cast<T>(0);
-		T kPower = static_cast<T>(1);
+		//T kPower = static_cast<T>(1);
 
 		T phaseValue = normCoeffs[0]
 				+ i * (normCoeffs[1]

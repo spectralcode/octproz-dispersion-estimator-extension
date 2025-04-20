@@ -38,8 +38,6 @@ void DispersionEstimationEngine::startDispersionEstimation(void *frameBuffer, un
 	this->processorController->settings_.samplesPerSpectrum = samplesPerLine;
 	this->processorController->settings_.spectraPerFrame = centerAscans;
 	this->processorController->settings_.bitDepth = bitDepth;
-	float originalD2 = this->processorController->settings_.dispersionCoefficients.at(2);
-	float originalD3 = this->processorController->settings_.dispersionCoefficients.at(3);
 
 	// Calculate offsets for extracting the center region
 	unsigned int offsetAscans = 0;
@@ -122,7 +120,7 @@ void DispersionEstimationEngine::processDispersionMetric(QByteArray &rawData, qr
 
 	// Calculate Ascan sharpness metric
 	qDebug() << "Calculating metric value...";
-	int samplesPerLine = this->processorController->settings_.samplesPerSpectrum / 2;
+	int samplesPerLine = static_cast<int>(this->processorController->settings_.samplesPerSpectrum / 2);
 	float metricValue = this->calculator.calculateMetric(outputData, samplesPerLine);
 
 	// Emit metric value signal based on the coefficient being changed
@@ -147,55 +145,39 @@ void DispersionEstimationEngine::processDispersionMetric(QByteArray &rawData, qr
 
 QVector<float> DispersionEstimationEngine::processFirstLineOnly(QByteArray &rawData, qreal d2, qreal d3)
 {
-	// Update the coefficient being tested
 	this->processorController->setDispersionCoefficients(d2, d3);
-
-	// Store original settings
 	size_t originalSpectraPerFrame = this->processorController->settings_.spectraPerFrame;
 	size_t originalFramesPerVolume = this->processorController->settings_.framesPerVolume;
-
-	// Temporär nur ein Spektrum pro Frame verarbeiten
 	this->processorController->settings_.spectraPerFrame = 1;
 	this->processorController->settings_.framesPerVolume = 1;
-
-	// Berechnung der relevanten Parameter
 	size_t bytesPerSample = static_cast<size_t>(ceil(static_cast<double>(this->processorController->settings_.bitDepth) / 8.0));
 	size_t samplesPerSpectrum = this->processorController->settings_.samplesPerSpectrum;
 	size_t lineSizeBytes = samplesPerSpectrum * bytesPerSample;
-
-	// Anzahl der zentralen A-Scans und Offset berechnen
-	unsigned int centerAscans = qMin(static_cast<size_t>(this->params.numberOfCenterAscans), originalSpectraPerFrame);
+	
+	unsigned int centerAscans = qMin(static_cast<unsigned int>(this->params.numberOfCenterAscans), static_cast<unsigned int>(originalSpectraPerFrame));
 	unsigned int offsetAscans = 0;
-	if (centerAscans < originalSpectraPerFrame) {
-		offsetAscans = (originalSpectraPerFrame - centerAscans) / 2;
+	
+	if (centerAscans < static_cast<unsigned int>(originalSpectraPerFrame)) {
+		offsetAscans = static_cast<unsigned int>((originalSpectraPerFrame - static_cast<size_t>(centerAscans)) / 2);
 	}
-
-	// Byte-Offset berechnen, um den ersten zentralen A-Scan zu extrahieren
-	size_t offsetBytes = offsetAscans * lineSizeBytes;
-
-	// Extrahieren des ersten zentralen A-Scans
+	
+	size_t offsetBytes = static_cast<size_t>(offsetAscans) * lineSizeBytes;
+	
 	QByteArray firstCenterAscanData(
 		rawData.constData() + offsetBytes,
 		static_cast<int>(lineSizeBytes)
 	);
-
-	// Verarbeitung des extrahierten A-Scans
+	
 	QVector<float> outputData;
 	qDebug() << "Processing first center A-scan...";
 	bool success = this->processorController->processData(firstCenterAscanData, outputData);
-
-	// Ursprüngliche Einstellungen wiederherstellen
 	this->processorController->settings_.spectraPerFrame = originalSpectraPerFrame;
 	this->processorController->settings_.framesPerVolume = originalFramesPerVolume;
-
+	
 	if (!success) {
 		qDebug() << "Processing failed!";
 		emit statusUpdate(tr("Processing results failed!"));
 		return QVector<float>();
 	}
-
 	return outputData;
 }
-
-
-
