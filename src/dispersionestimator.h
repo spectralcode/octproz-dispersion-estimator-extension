@@ -15,7 +15,7 @@ class DispersionEstimator : public Extension
 {
 	Q_OBJECT
 	Q_PLUGIN_METADATA(IID Extension_iid)
-	Q_INTERFACES(Extension)
+	Q_INTERFACES(Extension Plugin)
 	QThread estimatorEngineThread;
 
 public:
