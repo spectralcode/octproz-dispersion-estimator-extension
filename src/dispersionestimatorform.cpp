@@ -115,7 +115,9 @@ void DispersionEstimatorForm::showEvent(QShowEvent *event) {
 	static bool firstShow = true;
 	if (firstShow) {
 		int titleBarHeight = geometry().y()-frameGeometry().y(); //info: this calculation here is used because QStyle::PM_DockWidgetTitleMargin gives a slightly too small value on windows 10
-		move(this->frameGeometry().topLeft() - QPoint(0, titleBarHeight));
+		//move(this->frameGeometry().topLeft() - QPoint(0, titleBarHeight));
+		//this manual position adjustment is no longer necessary because the parent is now set to the main window OCTproZ and the form is correctly positioned on startup.
+		//todo: verify behavior on Jetson Nano and remove this if not needed.
 		firstShow = false;
 	}
 #endif
