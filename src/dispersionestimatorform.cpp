@@ -27,49 +27,46 @@ DispersionEstimatorForm::~DispersionEstimatorForm() {
 
 void DispersionEstimatorForm::setSettings(QVariantMap settings) {
 	//update parameters struct
-	if (!settings.isEmpty()) {
-		this->parameters.bufferNr = settings.value(DISPERSION_ESTIMATOR_BUFFER_NR).toInt();
-		this->parameters.frameNr = settings.value(DISPERSION_ESTIMATOR_FRAME_NR).toInt();
-		this->parameters.numberOfCenterAscans = settings.value(DISPERSION_ESTIMATOR_NUMBER_OF_CENTER_ASCANS).toInt();
-		this->parameters.useLinearAscans = settings.value(DISPERSION_ESTIMATOR_USE_LINEAR_ASCANS).toBool();
-		this->parameters.numberOfAscanSamplesToIgnore = settings.value(DISPERSION_ESTIMATOR_NUMBER_OF_ASCAN_SAMPLES_TO_IGNORE).toInt();
-		this->parameters.sharpnessMetric = static_cast<ASCAN_SHARPNESS_METRIC>(settings.value(DISPERSION_ESTIMATOR_SHARPNESS_METRIC).toInt());
-		this->parameters.metricThreshold = settings.value(DISPERSION_ESTIMATOR_METRIC_THRESHOLD).toReal();
-		this->parameters.d2start = settings.value(DISPERSION_ESTIMATOR_D2_START).toReal();
-		this->parameters.d2end = settings.value(DISPERSION_ESTIMATOR_D2_END).toReal();
-		this->parameters.d3start = settings.value(DISPERSION_ESTIMATOR_D3_START).toReal();
-		this->parameters.d3end = settings.value(DISPERSION_ESTIMATOR_D3_END).toReal();
-		this->parameters.numberOfDispersionSamples = settings.value(DISPERSION_ESTIMATOR_NUMBER_OF_DISPERSION_SAMPLES).toInt();
-		this->parameters.windowState = settings.value(DISPERSION_ESTIMATOR_WINDOW_STATE).toByteArray();
-		this->parameters.guiVisible = settings.value(DISPERSION_ESTIMATOR_GUI_TOGGLE, true).toBool();
+	this->parameters.bufferNr = settings.value(DISPERSION_ESTIMATOR_BUFFER_NR, -1).toInt();
+	this->parameters.frameNr = settings.value(DISPERSION_ESTIMATOR_FRAME_NR, 0).toInt();
+	this->parameters.numberOfCenterAscans = settings.value(DISPERSION_ESTIMATOR_NUMBER_OF_CENTER_ASCANS,20).toInt();
+	this->parameters.useLinearAscans = settings.value(DISPERSION_ESTIMATOR_USE_LINEAR_ASCANS, true).toBool();
+	this->parameters.numberOfAscanSamplesToIgnore = settings.value(DISPERSION_ESTIMATOR_NUMBER_OF_ASCAN_SAMPLES_TO_IGNORE, 30).toInt();
+	this->parameters.sharpnessMetric = static_cast<ASCAN_SHARPNESS_METRIC>(settings.value(DISPERSION_ESTIMATOR_SHARPNESS_METRIC, 2).toInt());
+	this->parameters.metricThreshold = settings.value(DISPERSION_ESTIMATOR_METRIC_THRESHOLD, 0.7).toReal();
+	this->parameters.d2start = settings.value(DISPERSION_ESTIMATOR_D2_START, -50.0).toReal();
+	this->parameters.d2end = settings.value(DISPERSION_ESTIMATOR_D2_END, 50.0).toReal();
+	this->parameters.d3start = settings.value(DISPERSION_ESTIMATOR_D3_START, -50.0).toReal();
+	this->parameters.d3end = settings.value(DISPERSION_ESTIMATOR_D3_END, 50.0).toReal();
+	this->parameters.numberOfDispersionSamples = settings.value(DISPERSION_ESTIMATOR_NUMBER_OF_DISPERSION_SAMPLES, 100).toInt();
+	this->parameters.windowState = settings.value(DISPERSION_ESTIMATOR_WINDOW_STATE).toByteArray();
+	this->parameters.guiVisible = settings.value(DISPERSION_ESTIMATOR_GUI_TOGGLE, true).toBool();
 
-		// Update the UI elements accordingly.
-		this->ui->spinBox_buffer->setValue(parameters.bufferNr);
-		this->ui->spinBox_frame->setValue(parameters.frameNr);
-		this->ui->spinBox_numberOfAscans->setValue(parameters.numberOfCenterAscans);
-		this->ui->checkBox_useLinear->setChecked(parameters.useLinearAscans);
-		this->ui->spinBox_samplesToIgnore->setValue(parameters.numberOfAscanSamplesToIgnore);
-		this->ui->comboBox_imageMetric->setCurrentIndex(static_cast<int>(parameters.sharpnessMetric));
-		this->ui->doubleSpinBox_metricThreshold->setValue(parameters.metricThreshold);
-		this->ui->doubleSpinBox_d2Start->setValue(parameters.d2start);
-		this->ui->doubleSpinBox_d2End->setValue(parameters.d2end);
-		this->ui->doubleSpinBox_d3Start->setValue(parameters.d3start);
-		this->ui->doubleSpinBox_d3End->setValue(parameters.d3end);
-		this->ui->spinBox_numberOfDispersionSamples->setValue(parameters.numberOfDispersionSamples);
+	//update the UI elements accordingly.
+	this->ui->spinBox_buffer->setValue(parameters.bufferNr);
+	this->ui->spinBox_frame->setValue(parameters.frameNr);
+	this->ui->spinBox_numberOfAscans->setValue(parameters.numberOfCenterAscans);
+	this->ui->checkBox_useLinear->setChecked(parameters.useLinearAscans);
+	this->ui->spinBox_samplesToIgnore->setValue(parameters.numberOfAscanSamplesToIgnore);
+	this->ui->comboBox_imageMetric->setCurrentIndex(static_cast<int>(parameters.sharpnessMetric));
+	this->ui->doubleSpinBox_metricThreshold->setValue(parameters.metricThreshold);
+	this->ui->doubleSpinBox_d2Start->setValue(parameters.d2start);
+	this->ui->doubleSpinBox_d2End->setValue(parameters.d2end);
+	this->ui->doubleSpinBox_d3Start->setValue(parameters.d3start);
+	this->ui->doubleSpinBox_d3End->setValue(parameters.d3end);
+	this->ui->spinBox_numberOfDispersionSamples->setValue(parameters.numberOfDispersionSamples);
 
-		// Set GUI elements visibility based on the stored toggle status
-		ui->widget_settings_area->setVisible(this->parameters.guiVisible);
-		if (!this->parameters.guiVisible) {
-			this->adjustSize();
-			this->setFixedSize(this->size());
-		} else {
-			this->setMinimumSize(0, 0);
-			this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
-			this->adjustSize();
-		}
-		// Restore the saved geometry after layout adjustments
-		this->restoreGeometry(this->parameters.windowState);
+	ui->widget_settings_area->setVisible(this->parameters.guiVisible);
+	if (!this->parameters.guiVisible) {
+		this->adjustSize();
+		this->setFixedSize(this->size());
+	} else {
+		this->setMinimumSize(0, 0);
+		this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+		this->adjustSize();
 	}
+
+	this->restoreGeometry(this->parameters.windowState);
 }
 
 void DispersionEstimatorForm::getSettings(QVariantMap* settings) {
@@ -112,14 +109,14 @@ void DispersionEstimatorForm::showEvent(QShowEvent *event) {
 	//on startup the qwidget window is positioned one title bar height below its previous position (probably because storeGeometry seems to save the window geometry without the title bar)
 	//this moves the window back to its original position
 	//todo: test if this is also necessary for linux jetson nano
-	static bool firstShow = true;
-	if (firstShow) {
-		int titleBarHeight = geometry().y()-frameGeometry().y(); //info: this calculation here is used because QStyle::PM_DockWidgetTitleMargin gives a slightly too small value on windows 10
+	//static bool firstShow = true;
+	//if (firstShow) {
+		//int titleBarHeight = geometry().y()-frameGeometry().y(); //info: this calculation here is used because QStyle::PM_DockWidgetTitleMargin gives a slightly too small value on windows 10
 		//move(this->frameGeometry().topLeft() - QPoint(0, titleBarHeight));
 		//this manual position adjustment is no longer necessary because the parent is now set to the main window OCTproZ and the form is correctly positioned on startup.
 		//todo: verify behavior on Jetson Nano and remove this if not needed.
-		firstShow = false;
-	}
+		//firstShow = false;
+	//}
 #endif
 }
 
