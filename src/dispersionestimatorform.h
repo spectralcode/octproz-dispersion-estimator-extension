@@ -27,7 +27,6 @@ public:
 
 protected:
 	bool eventFilter(QObject* watched, QEvent *event) override;
-	void showEvent(QShowEvent* event) override;
 
 public slots:
 	void setMaximumFrameNr(int maximum);
@@ -37,6 +36,7 @@ public slots:
 	void clearPlot();
 	void displayBestD2(double d2);
 	void displayBestD3(double d3);
+	void displayDerivedD1(double d1);
 
 	void addAscanOneToPlot(QVector<float> ascan);
 	void addAscanTwoToPlot(QVector<float> ascan);

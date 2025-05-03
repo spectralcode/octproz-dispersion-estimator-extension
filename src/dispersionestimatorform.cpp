@@ -32,6 +32,7 @@ void DispersionEstimatorForm::setSettings(QVariantMap settings) {
 	this->parameters.numberOfCenterAscans = settings.value(DISPERSION_ESTIMATOR_NUMBER_OF_CENTER_ASCANS,20).toInt();
 	this->parameters.useLinearAscans = settings.value(DISPERSION_ESTIMATOR_USE_LINEAR_ASCANS, true).toBool();
 	this->parameters.numberOfAscanSamplesToIgnore = settings.value(DISPERSION_ESTIMATOR_NUMBER_OF_ASCAN_SAMPLES_TO_IGNORE, 30).toInt();
+	this->parameters.autoCalcD1 = settings.value(DISPERSION_ESTIMATOR_AUTO_CALC_D1, false).toBool();
 	this->parameters.sharpnessMetric = static_cast<ASCAN_SHARPNESS_METRIC>(settings.value(DISPERSION_ESTIMATOR_SHARPNESS_METRIC, 2).toInt());
 	this->parameters.metricThreshold = settings.value(DISPERSION_ESTIMATOR_METRIC_THRESHOLD, 0.7).toReal();
 	this->parameters.d2start = settings.value(DISPERSION_ESTIMATOR_D2_START, -50.0).toReal();
@@ -48,6 +49,7 @@ void DispersionEstimatorForm::setSettings(QVariantMap settings) {
 	this->ui->spinBox_numberOfAscans->setValue(parameters.numberOfCenterAscans);
 	this->ui->checkBox_useLinear->setChecked(parameters.useLinearAscans);
 	this->ui->spinBox_samplesToIgnore->setValue(parameters.numberOfAscanSamplesToIgnore);
+	this->ui->checkBox_calcd1->setChecked(parameters.autoCalcD1);
 	this->ui->comboBox_imageMetric->setCurrentIndex(static_cast<int>(parameters.sharpnessMetric));
 	this->ui->doubleSpinBox_metricThreshold->setValue(parameters.metricThreshold);
 	this->ui->doubleSpinBox_d2Start->setValue(parameters.d2start);
@@ -79,6 +81,7 @@ void DispersionEstimatorForm::getSettings(QVariantMap* settings) {
 	settings->insert(DISPERSION_ESTIMATOR_NUMBER_OF_CENTER_ASCANS, this->parameters.numberOfCenterAscans);
 	settings->insert(DISPERSION_ESTIMATOR_USE_LINEAR_ASCANS, this->parameters.useLinearAscans);
 	settings->insert(DISPERSION_ESTIMATOR_NUMBER_OF_ASCAN_SAMPLES_TO_IGNORE, this->parameters.numberOfAscanSamplesToIgnore);
+	settings->insert(DISPERSION_ESTIMATOR_AUTO_CALC_D1, this->parameters.autoCalcD1);
 	settings->insert(DISPERSION_ESTIMATOR_SHARPNESS_METRIC, static_cast<int>(this->parameters.sharpnessMetric));
 	settings->insert(DISPERSION_ESTIMATOR_METRIC_THRESHOLD, this->parameters.metricThreshold);
 	settings->insert(DISPERSION_ESTIMATOR_D2_START, this->parameters.d2start);
@@ -94,30 +97,12 @@ bool DispersionEstimatorForm::eventFilter(QObject *watched, QEvent *event) {
 	if (watched == this) {
 		if (event->type() == QEvent::Resize || event->type() == QEvent::Move) {
 			if(this->isVisible()) {
-				this->parameters.windowState = this->saveGeometry(); //todo: on windows this stores the window position one title bar height below its current position. check how it behaves on a jetson nano and maybe save window->pos and size instead of geometry
+				this->parameters.windowState = this->saveGeometry();
 				emit paramsChanged(this->parameters);
 			}
 		}
 	}
 	return QWidget::eventFilter(watched, event);
-}
-
-void DispersionEstimatorForm::showEvent(QShowEvent *event) {
-	QWidget::showEvent(event);
-
-#ifdef Q_OS_WIN
-	//on startup the qwidget window is positioned one title bar height below its previous position (probably because storeGeometry seems to save the window geometry without the title bar)
-	//this moves the window back to its original position
-	//todo: test if this is also necessary for linux jetson nano
-	//static bool firstShow = true;
-	//if (firstShow) {
-		//int titleBarHeight = geometry().y()-frameGeometry().y(); //info: this calculation here is used because QStyle::PM_DockWidgetTitleMargin gives a slightly too small value on windows 10
-		//move(this->frameGeometry().topLeft() - QPoint(0, titleBarHeight));
-		//this manual position adjustment is no longer necessary because the parent is now set to the main window OCTproZ and the form is correctly positioned on startup.
-		//todo: verify behavior on Jetson Nano and remove this if not needed.
-		//firstShow = false;
-	//}
-#endif
 }
 
 void DispersionEstimatorForm::setMaximumFrameNr(int maximum) {
@@ -147,6 +132,10 @@ void DispersionEstimatorForm::displayBestD2(double d2) {
 
 void DispersionEstimatorForm::displayBestD3(double d3) {
 	this->ui->label_resultD3->setText(QString::number(d3));
+}
+
+void DispersionEstimatorForm::displayDerivedD1(double d1) {
+	this->ui->label_resultD1->setText(QString::number(d1));
 }
 
 void DispersionEstimatorForm::addAscanOneToPlot(QVector<float> ascan) {
@@ -220,6 +209,13 @@ void DispersionEstimatorForm::connectUiControls() {
 		this, [this](int value) {
 			this->parameters.numberOfAscanSamplesToIgnore = value;
 			emit paramsChanged(this->parameters);
+		});
+
+	// Auto calc d1
+	connect(ui->checkBox_calcd1, &QCheckBox::toggled,
+		this, [this](bool checked) {
+			this->parameters.autoCalcD1 = checked;
+			emit paramsChanged(parameters);
 		});
 
 	// Image metric (sharpness metric)

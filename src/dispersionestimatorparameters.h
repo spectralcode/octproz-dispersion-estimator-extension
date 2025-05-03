@@ -18,6 +18,7 @@
 #define DISPERSION_ESTIMATOR_NUMBER_OF_CENTER_ASCANS "number_of_center_ascans"
 #define DISPERSION_ESTIMATOR_USE_LINEAR_ASCANS "use_linear_ascans"
 #define DISPERSION_ESTIMATOR_NUMBER_OF_ASCAN_SAMPLES_TO_IGNORE	"number_of_ascan_samples_to_ignore"
+#define DISPERSION_ESTIMATOR_AUTO_CALC_D1 "auto_calculate_d1"
 #define DISPERSION_ESTIMATOR_SHARPNESS_METRIC "sharpness_metric"
 #define DISPERSION_ESTIMATOR_METRIC_THRESHOLD "metric_threshold"
 #define DISPERSION_ESTIMATOR_D2_START "d2_start"
@@ -49,6 +50,7 @@ struct DispersionEstimatorParameters {
 	int numberOfCenterAscans;
 	bool useLinearAscans;
 	int numberOfAscanSamplesToIgnore;
+	bool autoCalcD1;
 	ASCAN_SHARPNESS_METRIC sharpnessMetric;
 	qreal metricThreshold;
 	qreal d2start;

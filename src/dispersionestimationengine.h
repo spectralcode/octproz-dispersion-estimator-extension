@@ -28,6 +28,7 @@ private:
 	float bestMetricValueD3;
 	double bestD2;
 	double bestD3;
+	double calculatedD1;
 
 	void processDispersionMetric(QByteArray &rawData, qreal &d2, qreal &d3, qreal stepSize, bool isD2);
 	QVector<float> processFirstLineOnly(QByteArray &rawData, qreal d2, qreal d3);
@@ -45,6 +46,7 @@ signals:
 
 	void bestD2Estimated(double estimatedD2);
 	void bestD3Estimated(double estimateD3);
+	void d1Calculated(double d1);
 	void dispersionEstimationReady(double* d0, double* d1, double* d2, double* d3);
 
 public slots:

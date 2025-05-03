@@ -92,6 +92,7 @@ void DispersionEstimator::setupDispersionEstimatorEngine() {
 	connect(this->estimationEngine, &DispersionEstimationEngine::metricValueCalculatedD3, this->form, &DispersionEstimatorForm::addDataToD3Plot);
 	connect(this->estimationEngine, &DispersionEstimationEngine::bestD2Estimated, this->form, &DispersionEstimatorForm::displayBestD2);
 	connect(this->estimationEngine, &DispersionEstimationEngine::bestD3Estimated, this->form, &DispersionEstimatorForm::displayBestD3);
+	connect(this->estimationEngine, &DispersionEstimationEngine::d1Calculated, this->form, &DispersionEstimatorForm::displayDerivedD1);
 	connect(this->estimationEngine, &DispersionEstimationEngine::dispersionEstimationReady, this, &DispersionEstimator::setDispCompCoeffsRequest);
 
 	connect(this->estimationEngine, &DispersionEstimationEngine::ascanWithoutDispersionCalculated, this->form, &DispersionEstimatorForm::addAscanOneToPlot);

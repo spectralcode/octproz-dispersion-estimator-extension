@@ -12,6 +12,7 @@ DispersionEstimationEngine::DispersionEstimationEngine(QObject *parent)
 	this->bestD2 = 0;
 	this->bestMetricValueD3 = 0;
 	this->bestD3 = 0;
+	this->calculatedD1 = 0;
 }
 
 void DispersionEstimationEngine::setParams(DispersionEstimatorParameters params) {
@@ -94,8 +95,16 @@ void DispersionEstimationEngine::startDispersionEstimation(void *frameBuffer, un
 	QVector<float> ascanWithBestDispersion = this->processFirstLineOnly(rawData, this->bestD2, this->bestD3);
 	emit ascanWithBestDispersionCalculated(ascanWithBestDispersion);
 
+	// calculate d1
+	double* d1Ptr = nullptr;
+	if(params.autoCalcD1){
+		this->calculatedD1 = -(bestD2 + bestD3);
+		d1Ptr = &(this->calculatedD1);
+		emit d1Calculated(this->calculatedD1);
+	}
+
 	// transfer and display best dispersion values
-	emit dispersionEstimationReady(nullptr, nullptr, &this->bestD2, &this->bestD3);
+	emit dispersionEstimationReady(nullptr, d1Ptr, &this->bestD2, &this->bestD3);
 	emit bestD2Estimated(this->bestD2);
 	emit bestD3Estimated(this->bestD3);
 
